@@ -2,7 +2,24 @@
 
 A powerful Python tool for comprehensive target reconnaissance, combining subdomain enumeration, port scanning, and service fingerprinting capabilities.
 
-## Features
+#Requirements
+Python 3.x
+Kali Linux (or any Linux with required tools)
+
+-Required Python packages:
+python-nmap
+dnspython
+requests
+termcolor
+tqdm
+
+```
+sudo apt update
+sudo apt install python3-pip nmap
+pip3 install python-nmap dnspython requests termcolor tqdm
+```
+
+# Features
 
 - **Subdomain Enumeration**: Discover hidden subdomains using DNS resolution
 - **Port Scanning**: Identify open ports with multi-threading support
@@ -10,21 +27,21 @@ A powerful Python tool for comprehensive target reconnaissance, combining subdom
 - **Multi-threaded**: Fast execution with configurable thread count
 - **User-friendly**: Color-coded output and progress bars
 
-## Installation
+# Installation
 
-### Prerequisites
+# Prerequisites
 - Python 3.6+
 - Nmap (for service fingerprinting)
 - Required Python packages
 
-### Setup
+# Setup
 ```bash
 git clone git clone https://github.com/shivampawar1009/reconmaster.git
 cd recon-toolkit
 pip install -r requirements.txt
 ```
 
-## Usage
+# Usage
 
 
 # Full reconnaissance (subdomains + port scan + fingerprinting)
