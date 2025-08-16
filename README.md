@@ -54,8 +54,8 @@ pip install -r requirements.txt
 ```python3 recon.py --full -d example.com -w wordlist.txt --threads 100```
 
 
-##Arguments
-Argument	Description	Default
+# Arguments
+- Argument	Description	Default
 ```
 -d, --domain	Target domain for subdomain enumeration	None
 -w, --wordlist	Wordlist path for subdomain brute-forcing	/usr/share/wordlists/dirb/common.txt
