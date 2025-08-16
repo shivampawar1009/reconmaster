@@ -5,7 +5,6 @@ import socket
 import concurrent.futures
 import requests
 import dns.resolver
-import nmap
 from termcolor import colored
 from urllib.parse import urlparse
 from tqdm import tqdm
@@ -19,7 +18,7 @@ def print_banner():
     ___) | |_| | |_) |  _|| |_| |  _ <| |___| |\  | | |  
    |____/ \___/|____/|_|   \___/|_| \_\_____|_| \_| |_|  
                                                           
-    Subdomain Enumeration | Port Scanning | Service Fingerprinting
+    Subdomain Enumeration | Port Scanning | Basic Service Detection
     """
     print(colored(banner, 'cyan'))
 
@@ -81,42 +80,54 @@ def scan_ports(target, ports, threads):
     
     return open_ports
 
-# Service fingerprinting
-def fingerprint_services(target, open_ports):
-    print(colored(f"\n[+] Fingerprinting services on {target}", 'yellow'))
+# Basic service detection
+def detect_services(target, open_ports):
+    print(colored(f"\n[+] Detecting services on {target}", 'yellow'))
     
-    nm = nmap.PortScanner()
+    # Common port to service mapping
+    common_services = {
+        20: 'FTP (Data)',
+        21: 'FTP (Control)',
+        22: 'SSH',
+        23: 'Telnet',
+        25: 'SMTP',
+        53: 'DNS',
+        80: 'HTTP',
+        110: 'POP3',
+        143: 'IMAP',
+        443: 'HTTPS',
+        445: 'SMB',
+        3306: 'MySQL',
+        3389: 'RDP',
+        8080: 'HTTP-Alt',
+    }
     
-    try:
-        port_str = ','.join(map(str, open_ports))
-        nm.scan(hosts=target, ports=port_str, arguments='-sV --version-intensity 3')
+    for port in open_ports:
+        service = common_services.get(port, 'Unknown')
+        print(colored(f"[+] Port {port}: Likely {service} service", 'blue'))
         
-        for host in nm.all_hosts():
-            print(colored(f"\n[+] Results for {host}:", 'blue'))
-            for proto in nm[host].all_protocols():
-                print(colored(f"\nProtocol: {proto}", 'magenta'))
-                ports = nm[host][proto].keys()
-                for port in sorted(ports):
-                    service = nm[host][proto][port]
-                    print(f"Port: {port}")
-                    print(f"State: {service['state']}")
-                    print(f"Service: {service['name']}")
-                    print(f"Version: {service.get('version', 'N/A')}")
-                    print(f"Product: {service.get('product', 'N/A')}")
-                    print(f"Extra Info: {service.get('extrainfo', 'N/A')}")
-                    print("-" * 30)
-    except Exception as e:
-        print(colored(f"[-] Error during service fingerprinting: {e}", 'red'))
+        # Try to get HTTP service banner if it's a web port
+        if port in [80, 443, 8080, 8443]:
+            try:
+                protocol = 'https' if port in [443, 8443] else 'http'
+                url = f"{protocol}://{target}:{port}"
+                response = requests.get(url, timeout=3, verify=False)
+                server = response.headers.get('Server', 'Not specified')
+                print(f"    Web Server: {server}")
+                print(f"    Status Code: {response.status_code}")
+                print(f"    Response Length: {len(response.content)} bytes")
+            except requests.exceptions.RequestException as e:
+                print("    Could not retrieve HTTP headers")
 
 # Main function
 def main():
-    parser = argparse.ArgumentParser(description="Combined Subdomain Enumeration, Port Scanning, and Service Fingerprinting Tool")
+    parser = argparse.ArgumentParser(description="Combined Subdomain Enumeration, Port Scanning, and Basic Service Detection Tool")
     parser.add_argument("-d", "--domain", help="Target domain for subdomain enumeration")
     parser.add_argument("-w", "--wordlist", default="/usr/share/wordlists/dirb/common.txt", help="Wordlist for subdomain enumeration")
     parser.add_argument("-t", "--target", help="Target IP or domain for port scanning")
     parser.add_argument("-p", "--ports", default="1-1024", help="Ports to scan (e.g., 80,443 or 1-1000)")
     parser.add_argument("--threads", type=int, default=50, help="Number of threads to use")
-    parser.add_argument("--full", action="store_true", help="Run full reconnaissance (subdomain, port scan, fingerprinting)")
+    parser.add_argument("--full", action="store_true", help="Run full reconnaissance (subdomain, port scan, service detection)")
     args = parser.parse_args()
     
     print_banner()
@@ -142,8 +153,8 @@ def main():
                 open_ports = scan_ports(target_ip, args.ports, args.threads)
                 
                 if open_ports:
-                    # Step 3: Service fingerprinting
-                    fingerprint_services(target_ip, open_ports)
+                    # Step 3: Basic service detection
+                    detect_services(target_ip, open_ports)
                 else:
                     print(colored(f"[-] No open ports found for {subdomain}", 'red'))
             except socket.gaierror:
@@ -154,7 +165,7 @@ def main():
                 target_ip = socket.gethostbyname(args.target)
                 open_ports = scan_ports(target_ip, args.ports, args.threads)
                 if open_ports:
-                    fingerprint_services(target_ip, open_ports)
+                    detect_services(target_ip, open_ports)
             except socket.gaierror:
                 print(colored(f"[-] Could not resolve {args.target}", 'red'))
         else:
