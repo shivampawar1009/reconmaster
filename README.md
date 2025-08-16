@@ -2,11 +2,11 @@
 
 A powerful Python tool for comprehensive target reconnaissance, combining subdomain enumeration, port scanning, and service fingerprinting capabilities.
 
-#Requirements
+# Requirements
 Python 3.x
 Kali Linux (or any Linux with required tools)
 
--Required Python packages:
+- Required Python packages:
 python-nmap
 dnspython
 requests
