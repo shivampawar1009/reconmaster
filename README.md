@@ -37,7 +37,7 @@ pip3 install python-nmap dnspython requests termcolor tqdm
 # Setup
 ```bash
 git clone git clone https://github.com/shivampawar1009/reconmaster.git
-cd recon-toolkit
+cd recon
 pip install -r requirements.txt
 ```
 
